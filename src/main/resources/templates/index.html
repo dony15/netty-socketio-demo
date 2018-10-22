@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket</title>
+    <script src="../static/jquery-3.3.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+<style>
+        body {
+            padding: 20px;
+        }
+        #console {
+            height: 400px;
+            overflow: auto;
+        }
+        .username-msg {
+            color: orange;
+        }
+        .connect-msg {
+            color: green;
+        }
+        .disconnect-msg {
+            color: red;
+        }
+        .send-msg {
+            color: #888
+        }
+    </style>
+</head>
+<body>
+<h1>SOCKET.IO!!</h1>
+<h3>Netty-socketio chat demo</h3>
+<br />
+<div id="console" class="well"></div>
+<form class="well form-inline" onsubmit="return false;">
+    <input id="name" class="input-xlarge" type="text" placeholder="用户名称. . . " />
+    <input id="msg" class="input-xlarge" style="width:500px;height:100px;" type="text" placeholder="发送内容. . . " />
+    <button type="button" onClick="sendMessage()" class="btn">发送</button>
+    <br />
+</form>
+</body>
+<script type="text/javascript">
+    Date.prototype.Format = function (fmt) { //author: meizz
+        var o = {
+            "M+": this.getMonth() + 1, //月份
+            "d+": this.getDate(), //日
+            "h+": this.getHours(), //小时
+            "H+": this.getHours(), //小时
+            "m+": this.getMinutes(), //分
+            "s+": this.getSeconds(), //秒
+            "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+            "S": this.getMilliseconds() //毫秒
+        };
+        if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+    }
+
+    var socket = io.connect('http://127.0.0.1:8000');
+
+    socket.on('connecting',function(data) {
+        output('<span class="connect-msg">连接中....'+JSON.stringify(data)+'</span>');
+    });
+
+    //连接服务器成功的监听
+    socket.on('connect',function() {
+        output('<span class="connect-msg">客户端连接服务器!</span>');
+    });
+
+    //接收服务端广播的监听“chatevent”为本人自定义监听方法，必须与服务器发送消息的一至
+    socket.on('message', function(data) {
+        output('<span class="username-msg">' + data.userName + ' : </span>'
+            + data.message);
+    });
+
+    //断开服务器的监听
+    socket.on('disconnect',function(data) {
+        output('<span class="disconnect-msg">客户端已断开连接! </span>');
+    });
+
+    function sendDisconnect() {
+        socket.disconnect();
+    }
+
+    function sendReconnect() {
+        socket.reconnect();
+    }
+
+    /*点击发送按钮*/
+    function sendMessage() {
+        var userName = $("#name").val();
+        var fromId = '';
+        var toId = '';
+        var toRoom = '';
+        var messageId = '';
+        var message = $('#msg').val();
+
+        var chatDate = new Date();
+        $('#msg').val('');
+        socket.emit('message', {
+            userName:userName,
+            fromId:fromId,
+            toId:toId,
+            toRoom:toRoom,
+            messageId:messageId,
+            message:message
+        });
+    }
+
+
+    function output(message) {
+        var currentTime = "<span class='time' >" + new Date().Format("yyyy-MM-dd HH:mm:ss") + "</span>";
+        var element = $("<div>" + currentTime + " " + message + "</div>");
+        $('#console').prepend(element);
+    }
+</script>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SocketIO</title>
+    <script src="jquery-3.3.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="FormatUtil.js"></script>
+    <script src="Message.js"></script>
+</head>
+<body>
+<h1>SOCKET-ROOM</h1>
+<div id="status">123</div>
+<div id="area"></div>
+<input id="userName" />
+<input id="inputMsg" placeholder="请输入内容" />
+<button id="submitBtn">发送</button>
+
+</body>
+<script type="text/javascript">
+    var socket=io.connect('http://127.0.0.1:8000');
+    var formatUtil = new FormatUtil();
+    var area=$("#area");
+    socket.on("connecting",function (data) {
+        $("#status").html('客户端连接中...!')
+    });
+    socket.on("connect",function (data) {
+        $("#status").html('客户端连接成功...!')
+    });
+    socket.on("disconnect",function (data) {
+        $("#status").html('客户端断开连接!')
+    });
+    socket.on("message",function (data) {
+        var msg = formatUtil.messageFormat(data);
+        area.prepend(msg);
+    });
+
+    $("#submitBtn").bind('click',function () {
+       var inputMsg= $("#inputMsg").val();
+
+       var messageDTO= new Message();
+       messageDTO.fromId=1;
+       messageDTO.toId=2;
+       messageDTO.message=inputMsg;
+       messageDTO.messageId=1;
+       messageDTO.userName=$("#userName").val();
+
+       socket.emit("message",messageDTO);
+    })
+
+
+
+</script>
+</html>
